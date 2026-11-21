@@ -13,6 +13,11 @@ from quantumsolver import (
 )
 from quantumsolver.app import app
 
+# How long a solver may run before the endpoint answers {"answer": "timeout"}. Redux shows
+# this to students, so it is the one number to change; gunicorn's worker timeout
+# (gunicorn.conf.py) and every client in front of this service must allow longer.
+SOLVER_TIMEOUT_SECONDS = 60
+
 
 @app.route("/")
 @app.route("/index")
@@ -99,7 +104,7 @@ def run_with_timeout(func, data):
     queue = ctx.Queue()
     process = ctx.Process(target=func, args=(queue, data))
     process.start()
-    process.join(25)
+    process.join(SOLVER_TIMEOUT_SECONDS)
 
     if process.is_alive():
         process.terminate()
