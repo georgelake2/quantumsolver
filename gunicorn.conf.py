@@ -6,9 +6,11 @@ import multiprocessing
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = "sync"
 
-# Must exceed the 60-second in-app timeout (SOLVER_TIMEOUT_SECONDS in routes.py) so
-# gunicorn doesn't kill a legitimately running solver before it has a chance to respond.
-timeout = 70
+# Half of this must exceed the 60-second in-app timeout (SOLVER_TIMEOUT_SECONDS in
+# routes.py). An idle sync worker last reports in before waiting up to timeout / 2 for a
+# connection, and the arbiter kills a worker `timeout` seconds after its last report, so a
+# request that arrives late in that wait gets only about timeout / 2. 130 leaves 65 s.
+timeout = 130
 
 bind = [
     "unix:/run/quantumsolver/gunicorn.sock",
