@@ -10,6 +10,7 @@ from quantumsolver import (
     deutsch_quantum,
     sat_quantum,
     shors_quantum,
+    shors_traced,
 )
 from quantumsolver.app import app
 
@@ -96,6 +97,20 @@ def solver_prime_factorization_quantum():
         return "expected json input"
     data = request.json
     return run_with_timeout(shors_target, data)
+
+
+def shors_traced_target(queue, data):
+    """split N with shor's algorithm, recording every attempt, and put the record in queue"""
+    queue.put(shors_traced.solve(data))
+
+
+@app.route("/shors-traced", methods=["POST"])
+def solver_shors_traced():
+    """shor's algorithm with every attempt recorded, for redux's visualizations"""
+    if not request.is_json:
+        return "expected json input"
+    data = request.json
+    return run_with_timeout(shors_traced_target, data)
 
 
 def run_with_timeout(func, data):
